@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Text Reader</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #555;
+            text-align: center;
+        }
+
+        ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            line-height: 2.2;
+            font-size: 1.15rem;
+        }
+
+        li {
+            margin-bottom: 25px;
+            transition: background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+
+        /* 재생 중인 문장 하이라이트 스타일 */
+        li.highlight {
+            background-color: #ffe6e6;
+            color: #d9534f;
+            font-weight: 500;
+        }
+
+        /* 원본 이미지처럼 특정 단어 빨간색 포인트 */
+        .red-text {
+            color: #d9534f;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #playBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #playBtn:hover {
+            background-color: #45a049;
+        }
+
+        #stopBtn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        #stopBtn:hover {
+            background-color: #d32f2f;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Read Aloud App</h1>
+        
+        <ul id="textList">
+            <li id="sentence-0">I don't remember <span class="red-text">my</span> <span class="red-text">dreams</span></li>
+            <li id="sentence-1">In my dream, I don't have happy or bad <span class="red-text">dreams</span>, because <span class="red-text">I</span> <span class="red-text">don't</span> <span class="red-text">dream</span> many times. I don't like <span class="red-text">to</span> <span class="red-text">dream</span> <span class="red-text">either!</span> I like dreaming <span class="red-text">about</span> <span class="red-text">a</span> happy dream, but <span class="red-text">I</span> don't like bad dreams.</li>
+            <li id="sentence-2">This is why I don't remember <span class="red-text">my</span> <span class="red-text">dreams</span>.</li>
+        </ul>
+
+        <div class="controls">
+            <button id="playBtn" onclick="startReading()">Play</button>
+            <button id="stopBtn" onclick="stopReading()" disabled>Stop</button>
+        </div>
+    </div>
+
+    <script>
+        const sentences = [
+            "I don't remember my dreams.",
+            "In my dream, I don't have happy or bad dreams, because I don't dream many times. I don't like to dream either! I like dreaming about a happy dream, but I don't like bad dreams.",
+            "This is why I don't remember my dreams."
+        ];
+
+        let currentIndex = 0;
+        let synth = window.speechSynthesis;
+        let utterance = null;
+
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        function clearHighlights() {
+            document.querySelectorAll('li').forEach(li => {
+                li.classList.remove('highlight');
+            });
+        }
+
+        function startReading() {
+            if (!('speechSynthesis' in window)) {
+                alert('이 브라우저는 음성 합성 기능을 지원하지 않습니다.');
+                return;
+            }
+
+            // 이미 재생 중이면 중지 후 처음부터 시작
+            synth.cancel();
+            currentIndex = 0;
+            
+            playBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            readNextSentence();
+        }
+
+        function readNextSentence() {
+            if (currentIndex >= sentences.length) {
+                stopReading();
+                return;
+            }
+
+            // 이전 하이라이트 제거 및 현재 문장 하이라이트
+            clearHighlights();
+            const currentLi = document.getElementById(`sentence-${currentIndex}`);
+            currentLi.classList.add('highlight');
+
+            utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
+            utterance.lang = 'en-US'; // 영어 발음 설정
+            utterance.rate = 0.9;     // 읽기 속도 (조절 가능)
+
+            utterance.onend = function() {
+                currentIndex++;
+                readNextSentence();
+            };
+
+            utterance.onerror = function() {
+                stopReading();
+            };
+
+            synth.speak(utterance);
+        }
+
+        function stopReading() {
+            synth.cancel();
+            clearHighlights();
+            playBtn.disabled = false;
+            stopBtn.disabled = true;
+            currentIndex = 0;
+        }
+    </script>
+</body>
+</html>
