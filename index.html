@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>텍스트 읽기 및 녹음 재생 웹 앱</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 650px;
+            width: 100%;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .text-box {
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            font-size: 1.1em;
+            color: #2c3e50;
+        }
+        .text-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .text-box li {
+            margin-bottom: 15px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            color: white;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .btn-read { background-color: #3498db; }
+        .btn-read:hover { background-color: #2980b9; }
+
+        .btn-play { background-color: #2ecc71; }
+        .btn-play:hover { background-color: #27ae60; }
+
+        .btn-stop { background-color: #e74c3c; }
+        .btn-stop:hover { background-color: #c0392b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Dream Story Reader</h2>
+    
+    <!-- 이미지 속 텍스트 영역 -->
+    <div class="text-box" id="textContent">
+        <ul>
+            <li>I don't remember my dreams.</li>
+            <li>In my dream, I don't have happy or bad dreams, because I don't dream many times. I don't like to dream either! I like dreaming about a happy dream, but I don't like bad dreams.</li>
+            <li>This is why I don't remember my dreams.</li>
+        </ul>
+    </div>
+
+    <!-- 버튼 그룹 -->
+    <div class="button-group">
+        <button class="btn-read" onclick="readText()">텍스트 읽어주기</button>
+        <button class="btn-play" onclick="playAudio()">내 녹음 듣기</button>
+        <button class="btn-stop" onclick="stopAudio()">재생 중지</button>
+    </div>
+</div>
+
+<!-- 오디오 객체 생성 (응.mp3 파일 연결) -->
+<audio id="myAudio" src="응.m4a"></audio>
+
+<script>
+    // 1. 브라우저 음성 합성(TTS)을 이용해 텍스트 읽어주기
+    function readText() {
+        if (!('speechSynthesis' in window)) {
+            alert("이 브라우저는 음성 합성을 지원하지 않습니다.");
+            return;
+        }
+
+        // 브라우저가 읽는 도중 겹치지 않도록 기존 음성 취소
+        window.speechSynthesis.cancel();
+
+        const textElement = document.getElementById('textContent');
+        const textToRead = textElement.innerText; // HTML 태그를 제외한 순수 텍스트 추출
+
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+        utterance.lang = 'en-US'; // 영어 발음 설정
+        utterance.rate = 0.9;     // 읽기 속도 (조절 가능)
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // 오디오 엘리먼트 가져오기
+    const audio = document.getElementById('myAudio');
+
+    // 2. 내 녹음(응.mp3) 재생하기
+    function playAudio() {
+        // 녹음 재생 전, 브라우저가 텍스트를 읽고 있었다면 중지
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+
+        audio.play().then(() => {
+            console.log("재생 시작");
+        }).catch(error => {
+            alert("오디오를 재생할 수 없습니다. '응.m4a' 파일이 올바른 위치에 있는지, 또는 브라우저 정책(사용자 상호작용)을 확인해주세요.");
+            console.error(error);
+        });
+    }
+
+    // 3. 재생 중지하기 (녹음 재생 및 텍스트 읽기 모두 중지)
+    function stopAudio() {
+        // 응.mp3 정지 및 처음으로 초기화
+        audio.pause();
+        audio.currentTime = 0;
+
+        // 텍스트 읽기 중지
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+    }
+</script>
+
+</body>
+</html>
